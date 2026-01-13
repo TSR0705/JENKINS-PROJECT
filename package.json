@@ -1,0 +1,26 @@
+{
+  "name": "openci-runner",
+  "version": "1.0.0",
+  "description": "OpenCI Runner - Phase 1 Implementation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ci",
+    "cd",
+    "pipeline",
+    "automation"
+  ],
+  "author": "OpenCI Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.0",
+    "ejs": "^3.1.8"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
