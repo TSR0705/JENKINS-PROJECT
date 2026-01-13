@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Status - OpenCI Runner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .job-container {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    .job-info {
+      margin-bottom: 15px;
+    }
+    .job-id {
+      font-weight: bold;
+      color: #007bff;
+    }
+    .status-pending {
+      color: #ff9800;
+      font-weight: bold;
+    }
+    .back-link {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>OpenCI Runner</h1>
+  <div class="job-container">
+    <h2>Job Status</h2>
+    <div class="job-info">
+      <p><strong>ID:</strong> <span class="job-id"><%= job.id %></span></p>
+      <p><strong>Repository URL:</strong> <%= job.repoUrl %></p>
+      <p><strong>Status:</strong> <span class="status-pending"><%= job.status %></span></p>
+      <p><strong>Created:</strong> <%= job.createdAt %></p>
+    </div>
+    <div class="back-link">
+      <a href="/">Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
