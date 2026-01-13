@@ -1,0 +1,1 @@
+# Platform Docker image\n
