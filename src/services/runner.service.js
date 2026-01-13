@@ -55,7 +55,7 @@ const runContainer = (workDir, commands) => {
         logs.push('Execution timed out');
         docker.kill('SIGKILL');
         finished = true;
-        resolve({ success: false, logs });
+        resolve({ success: false, logs, timeout: true });
       }
     }, TIMEOUT_MS);
 
