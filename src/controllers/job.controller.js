@@ -1,7 +1,7 @@
 const { createJob, getJob } = require('../jobs/jobStore');
 const { cloneRepo } = require('../services/clone.service');
 const { detectProjectType } = require('../services/detect.service');
-const { executeJob } = require('../services/runner.service');
+const { enqueueJob } = require('../services/queue.service');
 const fs = require('fs');
 
 const createJobHandler = async (req, res) => {
@@ -10,6 +10,8 @@ const createJobHandler = async (req, res) => {
     return res.status(400).send('Repository URL is required');
   }
 
+  const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || '127.0.0.1';
+  
   const job = createJob(repoUrl);
   job.status = 'PENDING';
   job.projectType = null;
@@ -36,8 +38,15 @@ const createJobHandler = async (req, res) => {
       res.redirect(`/job/${job.id}`);
       return;
     } else {
-      // Start job execution in the background
-      startJobExecution(job, workDir);
+      const queueResult = enqueueJob(job, workDir, clientIp);
+      if (!queueResult.success) {
+        job.status = 'FAILED';
+        if (fs.existsSync(workDir)) {
+          fs.rmSync(workDir, { recursive: true, force: true });
+        }
+        job.workDir = null;
+        return res.status(429).render('error', { message: queueResult.error });
+      }
     }
   } catch (error) {
     job.status = 'FAILED';
@@ -50,36 +59,6 @@ const createJobHandler = async (req, res) => {
   }
 
   res.redirect(`/job/${job.id}`);
-}
-
-const startJobExecution = (job, workDir) => {
-  job.startedAt = new Date().toISOString();
-  
-  executeJob(job)
-    .then(result => {
-      job.completedAt = new Date().toISOString();
-      job.logs = result.logs;
-      if (result.timeout) {
-        job.status = 'TIMEOUT';
-      } else {
-        job.status = result.success ? 'PASS' : 'FAIL';
-      }
-      
-      if (fs.existsSync(workDir)) {
-        fs.rmSync(workDir, { recursive: true, force: true });
-      }
-      job.workDir = null;
-    })
-    .catch(err => {
-      job.completedAt = new Date().toISOString();
-      job.logs.push(err.message);
-      job.status = 'FAIL';
-      
-      if (fs.existsSync(workDir)) {
-        fs.rmSync(workDir, { recursive: true, force: true });
-      }
-      job.workDir = null;
-    });
 };
 
 const getJobHandler = (req, res) => {
