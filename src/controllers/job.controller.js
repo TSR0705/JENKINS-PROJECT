@@ -53,22 +53,28 @@ const createJobHandler = async (req, res) => {
 }
 
 const startJobExecution = (job, workDir) => {
+  job.startedAt = new Date().toISOString();
+  
   executeJob(job)
     .then(result => {
+      job.completedAt = new Date().toISOString();
       job.logs = result.logs;
-      job.status = result.success ? 'PASS' : 'FAIL';
+      if (result.timeout) {
+        job.status = 'TIMEOUT';
+      } else {
+        job.status = result.success ? 'PASS' : 'FAIL';
+      }
       
-      // Clean up work directory after execution
       if (fs.existsSync(workDir)) {
         fs.rmSync(workDir, { recursive: true, force: true });
       }
       job.workDir = null;
     })
     .catch(err => {
+      job.completedAt = new Date().toISOString();
       job.logs.push(err.message);
       job.status = 'FAIL';
       
-      // Clean up work directory after execution
       if (fs.existsSync(workDir)) {
         fs.rmSync(workDir, { recursive: true, force: true });
       }
@@ -84,7 +90,19 @@ const getJobHandler = (req, res) => {
     return res.status(404).render('error', { message: 'Job not found' });
   }
 
-  res.render('job', { job });
+  let duration = null;
+  if (job.startedAt && job.completedAt) {
+    const start = new Date(job.startedAt);
+    const end = new Date(job.completedAt);
+    duration = Math.round((end - start) / 1000);
+  }
+
+  const jobData = {
+    ...job,
+    duration
+  };
+
+  res.render('job', { job: jobData });
 };
 
 module.exports = {
