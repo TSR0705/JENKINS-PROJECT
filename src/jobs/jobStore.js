@@ -7,7 +7,9 @@ const createJob = (repoUrl) => {
     repoUrl,
     status: 'PENDING',
     createdAt: new Date().toISOString(),
-    logs: []
+    logs: [],
+    projectType: null,
+    workDir: null
   };
   
   jobs.set(id, job);
