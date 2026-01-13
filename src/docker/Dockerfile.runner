@@ -1,1 +1,28 @@
-# User-code execution image\n
+FROM node:18-slim
+
+# Install Python 3.10 and required packages
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r runner && useradd -r -g runner runner
+
+# Install Python tools
+RUN pip3 install --no-cache-dir --break-system-packages pytest flake8
+
+
+# Set working directory
+WORKDIR /workspace
+
+# Change ownership of workspace to runner user
+RUN chown -R runner:runner /workspace
+
+# Switch to non-root user
+USER runner
+
+# npm is already included with node:18-slim base image
+# pip is installed with python3-pip
