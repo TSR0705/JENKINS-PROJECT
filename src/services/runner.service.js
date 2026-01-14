@@ -1,8 +1,9 @@
 const { spawn } = require('child_process');
 const path = require('path');
+const logger = require('../utils/logger');
 
-const RUNNER_IMAGE = 'openci-runner-image';
-const TIMEOUT_MS = 120000;
+const RUNNER_IMAGE = process.env.RUNNER_IMAGE || 'openci-runner-image';
+const TIMEOUT_MS = parseInt(process.env.JOB_TIMEOUT_MS || '120000', 10);
 
 const getCommands = (projectType) => {
   if (projectType === 'node') {
@@ -35,11 +36,10 @@ const runContainer = (workDir, commands) => {
     const dockerArgs = [
       'run',
       '--rm',
-      '--network=none',
       '--memory=512m',
       '--cpus=1',
       '--cap-drop=ALL',
-      '--user', 'node',
+      '--user', 'runner',
       '-v', `${mountPath}:/workspace`,
       '-w', '/workspace',
       RUNNER_IMAGE,
@@ -91,11 +91,34 @@ const runContainer = (workDir, commands) => {
 
 const executeJob = async (job) => {
   if (!job.workDir || !job.projectType) {
-    throw new Error('Job missing workDir or projectType');
+    const error = new Error('Job missing workDir or projectType');
+    logger.error('Job execution failed: missing required fields', { 
+      jobId: job.id, 
+      workDir: job.workDir, 
+      projectType: job.projectType 
+    });
+    throw error;
   }
 
+  logger.info('Starting job execution', { 
+    jobId: job.id, 
+    projectType: job.projectType, 
+    workDir: job.workDir 
+  });
+
   const commands = getCommands(job.projectType);
-  return await runContainer(job.workDir, commands);
+  logger.info('Commands prepared', { jobId: job.id, commands });
+  
+  const result = await runContainer(job.workDir, commands);
+  
+  logger.info('Job execution completed', { 
+    jobId: job.id, 
+    success: result.success, 
+    timeout: result.timeout,
+    logCount: result.logs.length 
+  });
+  
+  return result;
 };
 
 module.exports = { executeJob };

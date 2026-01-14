@@ -5,162 +5,479 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Job <%= job.id %> - OpenCI Runner</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      max-width: 1000px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #fafafa;
+      color: #1a1a1a;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 20px;
-      background-color: #f5f5f5;
     }
-    .job-container {
-      border: 1px solid #ddd;
-      padding: 25px;
-      border-radius: 8px;
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    
+    .header {
+      margin-bottom: 30px;
     }
-    .job-header {
-      border-bottom: 2px solid #eee;
-      padding-bottom: 15px;
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+    
+    .header-subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .job-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
       margin-bottom: 20px;
     }
-    .job-id {
-      font-weight: bold;
-      color: #007bff;
-      font-size: 1.1em;
+    
+    .status-banner {
+      padding: 16px 24px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .job-info {
-      display: grid;
-      grid-template-columns: 150px 1fr;
+    
+    .status-banner.PENDING {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+    }
+    
+    .status-banner.RUNNING {
+      background: #e3f2fd;
+      border-left: 4px solid #1976d2;
+    }
+    
+    .status-banner.PASS {
+      background: #e8f5e9;
+      border-left: 4px solid #388e3c;
+    }
+    
+    .status-banner.FAIL {
+      background: #ffebee;
+      border-left: 4px solid #d32f2f;
+    }
+    
+    .status-banner.TIMEOUT {
+      background: #fff3e0;
+      border-left: 4px solid #f57c00;
+    }
+    
+    .status-banner.FAILED {
+      background: #f5f5f5;
+      border-left: 4px solid #757575;
+    }
+    
+    .status-text {
+      font-size: 16px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
       gap: 10px;
-      margin-bottom: 20px;
     }
-    .job-info-label {
-      font-weight: bold;
-      color: #555;
+    
+    .status-text.PENDING { color: #f9a825; }
+    .status-text.RUNNING { color: #1976d2; }
+    .status-text.PASS { color: #388e3c; }
+    .status-text.FAIL { color: #d32f2f; }
+    .status-text.TIMEOUT { color: #f57c00; }
+    .status-text.FAILED { color: #757575; }
+    
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(25, 118, 210, 0.2);
+      border-top-color: #1976d2;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
-    .status-PASS {
-      color: #28a745;
-      font-weight: bold;
-      font-size: 1.1em;
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-    .status-FAIL {
-      color: #dc3545;
-      font-weight: bold;
-      font-size: 1.1em;
+    
+    .job-details {
+      padding: 24px;
     }
-    .status-TIMEOUT {
-      color: #fd7e14;
-      font-weight: bold;
-      font-size: 1.1em;
+    
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px 20px;
+      margin-bottom: 24px;
     }
-    .status-PENDING {
-      color: #ffc107;
-      font-weight: bold;
-      font-size: 1.1em;
-    }
-    .status-RUNNING {
-      color: #17a2b8;
-      font-weight: bold;
-      font-size: 1.1em;
-    }
-    .status-FAILED {
-      color: #6c757d;
-      font-weight: bold;
-      font-size: 1.1em;
-    }
-    .logs-section {
-      margin-top: 25px;
-    }
-    .logs-header {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #333;
-      font-size: 1.1em;
-    }
-    .logs-container {
-      background-color: #1e1e1e;
-      color: #f8f8f2;
-      padding: 15px;
-      border-radius: 5px;
-      font-family: 'Courier New', Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.4;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      max-height: 500px;
-      overflow-y: auto;
-      border: 1px solid #444;
-    }
-    .no-logs {
-      color: #888;
-      font-style: italic;
-      padding: 20px;
-      text-align: center;
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 5px;
-    }
-    .back-link {
-      margin-top: 25px;
-      padding-top: 15px;
-      border-top: 1px solid #eee;
-    }
-    .back-link a {
-      color: #007bff;
-      text-decoration: none;
+    
+    .detail-label {
+      color: #666;
+      font-size: 14px;
       font-weight: 500;
     }
+    
+    .detail-value {
+      color: #1a1a1a;
+      font-size: 14px;
+      word-break: break-all;
+    }
+    
+    .job-id-value {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #1976d2;
+    }
+    
+    .logs-section {
+      border-top: 1px solid #e0e0e0;
+      padding: 24px;
+      background: #fafafa;
+    }
+    
+    .logs-header {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .logs-container {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid #333;
+    }
+    
+    .logs-container::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    .logs-container::-webkit-scrollbar-track {
+      background: #2d2d2d;
+    }
+    
+    .logs-container::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 5px;
+    }
+    
+    .logs-container::-webkit-scrollbar-thumb:hover {
+      background: #666;
+    }
+    
+    .logs-placeholder {
+      color: #888;
+      font-style: italic;
+      padding: 40px 20px;
+      text-align: center;
+      background: #f5f5f5;
+      border: 1px dashed #ccc;
+      border-radius: 4px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .back-link {
+      margin-top: 20px;
+    }
+    
+    .back-link a {
+      color: #1976d2;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
     .back-link a:hover {
       text-decoration: underline;
     }
-    .repo-url {
-      word-break: break-all;
+    
+    .update-indicator {
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #1976d2;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
   </style>
 </head>
 <body>
-  <h1>OpenCI Runner</h1>
-  <div class="job-container">
-    <div class="job-header">
-      <h2>Job Details</h2>
+  <div class="container">
+    <div class="header">
+      <h1>OpenCI Runner</h1>
+      <div class="header-subtitle">Continuous Integration Job Details</div>
     </div>
     
-    <div class="job-info">
-      <div class="job-info-label">Job ID:</div>
-      <div class="job-id"><%= job.id %></div>
+    <div class="job-card">
+      <div class="status-banner <%= job.status %>" id="statusBanner">
+        <div class="status-text <%= job.status %>" id="statusText">
+          <% if (job.status === 'RUNNING') { %>
+            <div class="spinner"></div>
+          <% } %>
+          <span id="statusMessage">
+            <% if (job.status === 'PENDING') { %>
+              Waiting in queue…
+            <% } else if (job.status === 'RUNNING') { %>
+              Running CI job…
+            <% } else if (job.status === 'PASS') { %>
+              Job completed successfully
+            <% } else if (job.status === 'FAIL') { %>
+              Job failed
+            <% } else if (job.status === 'TIMEOUT') { %>
+              Job timed out
+            <% } else if (job.status === 'FAILED') { %>
+              Job failed
+            <% } else { %>
+              <%= job.status %>
+            <% } %>
+          </span>
+        </div>
+        <% if (job.status === 'PENDING' || job.status === 'RUNNING') { %>
+          <div class="update-indicator" id="updateIndicator">
+            <div class="pulse-dot"></div>
+            <span>Auto-updating</span>
+          </div>
+        <% } %>
+      </div>
       
-      <div class="job-info-label">Repository URL:</div>
-      <div class="repo-url"><%= job.repoUrl %></div>
+      <div class="job-details">
+        <div class="detail-grid">
+          <div class="detail-label">Job ID</div>
+          <div class="detail-value job-id-value"><%= job.id %></div>
+          
+          <div class="detail-label">Repository</div>
+          <div class="detail-value"><%= job.repoUrl %></div>
+          
+          <div class="detail-label">Project Type</div>
+          <div class="detail-value" id="projectType"><%= job.projectType || 'Detecting…' %></div>
+          
+          <div class="detail-label">Status</div>
+          <div class="detail-value"><span class="status-text <%= job.status %>" id="statusValue"><%= job.status %></span></div>
+          
+          <div class="detail-label">Created</div>
+          <div class="detail-value"><%= new Date(job.createdAt).toLocaleString() %></div>
+          
+          <div class="detail-label">Duration</div>
+          <div class="detail-value" id="duration">
+            <% if (job.duration !== null) { %>
+              <%= job.duration %> seconds
+            <% } else { %>
+              —
+            <% } %>
+          </div>
+        </div>
+      </div>
       
-      <div class="job-info-label">Project Type:</div>
-      <div><%= job.projectType || 'Unknown' %></div>
-      
-      <div class="job-info-label">Status:</div>
-      <div class="status-<%= job.status %>"><%= job.status %></div>
-      
-      <div class="job-info-label">Created:</div>
-      <div><%= new Date(job.createdAt).toLocaleString() %></div>
-      
-      <% if (job.duration !== null) { %>
-      <div class="job-info-label">Duration:</div>
-      <div><%= job.duration %> seconds</div>
-      <% } %>
+      <div class="logs-section">
+        <div class="logs-header">Execution Logs</div>
+        <div id="logsContent">
+          <% if (job.logs && job.logs.length > 0) { %>
+            <div class="logs-container" id="logsContainer"><%= job.logs.join('\n') %></div>
+          <% } else { %>
+            <div class="logs-placeholder" id="logsPlaceholder">
+              <% if (job.status === 'PENDING') { %>
+                Waiting for job to start…
+              <% } else if (job.status === 'RUNNING') { %>
+                Preparing environment… logs will appear shortly.
+              <% } else { %>
+                No logs available
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
     </div>
-
-    <div class="logs-section">
-      <div class="logs-header">Execution Logs</div>
-      <% if (job.logs && job.logs.length > 0) { %>
-        <div class="logs-container"><% job.logs.forEach(function(log) { %><%= log %>
-<% }); %></div>
-      <% } else { %>
-        <div class="no-logs">No logs available</div>
-      <% } %>
-    </div>
-
+    
     <div class="back-link">
       <a href="/">← Back to Home</a>
     </div>
   </div>
+
+  <script>
+    (function() {
+      const jobId = '<%= job.id %>';
+      const POLL_INTERVAL = 3000;
+      let pollTimer = null;
+      let isPolling = false;
+      
+      const FINAL_STATES = ['PASS', 'FAIL', 'TIMEOUT', 'FAILED'];
+      
+      function shouldPoll(status) {
+        return !FINAL_STATES.includes(status);
+      }
+      
+      function updateUI(data) {
+        const statusBanner = document.getElementById('statusBanner');
+        const statusText = document.getElementById('statusText');
+        const statusMessage = document.getElementById('statusMessage');
+        const statusValue = document.getElementById('statusValue');
+        const projectType = document.getElementById('projectType');
+        const duration = document.getElementById('duration');
+        const logsContent = document.getElementById('logsContent');
+        const updateIndicator = document.getElementById('updateIndicator');
+        
+        const oldStatus = statusBanner.className.split(' ').pop();
+        const newStatus = data.status;
+        
+        if (oldStatus !== newStatus) {
+          statusBanner.className = 'status-banner ' + newStatus;
+          statusText.className = 'status-text ' + newStatus;
+          statusValue.className = 'status-text ' + newStatus;
+          
+          let spinner = '';
+          if (newStatus === 'RUNNING') {
+            spinner = '<div class="spinner"></div>';
+          }
+          
+          let message = '';
+          if (newStatus === 'PENDING') {
+            message = 'Waiting in queue…';
+          } else if (newStatus === 'RUNNING') {
+            message = 'Running CI job…';
+          } else if (newStatus === 'PASS') {
+            message = 'Job completed successfully';
+          } else if (newStatus === 'FAIL') {
+            message = 'Job failed';
+          } else if (newStatus === 'TIMEOUT') {
+            message = 'Job timed out';
+          } else if (newStatus === 'FAILED') {
+            message = 'Job failed';
+          } else {
+            message = newStatus;
+          }
+          
+          statusText.innerHTML = spinner + '<span>' + message + '</span>';
+          statusMessage.textContent = message;
+          statusValue.textContent = newStatus;
+        }
+        
+        if (data.projectType && projectType) {
+          projectType.textContent = data.projectType;
+        }
+        
+        if (data.duration !== null && duration) {
+          duration.textContent = data.duration + ' seconds';
+        }
+        
+        if (data.logs && data.logs.length > 0) {
+          const logsContainer = document.getElementById('logsContainer');
+          const logsPlaceholder = document.getElementById('logsPlaceholder');
+          
+          if (logsPlaceholder) {
+            logsPlaceholder.remove();
+          }
+          
+          if (logsContainer) {
+            const wasAtBottom = logsContainer.scrollHeight - logsContainer.scrollTop <= logsContainer.clientHeight + 50;
+            logsContainer.textContent = data.logs.join('\n');
+            if (wasAtBottom) {
+              logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+          } else {
+            logsContent.innerHTML = '<div class="logs-container" id="logsContainer">' + 
+              data.logs.join('\n').replace(/</g, '&lt;').replace(/>/g, '&gt;') + 
+              '</div>';
+          }
+        } else if (data.status === 'RUNNING') {
+          const logsPlaceholder = document.getElementById('logsPlaceholder');
+          if (logsPlaceholder) {
+            logsPlaceholder.textContent = 'Preparing environment… logs will appear shortly.';
+          }
+        }
+        
+        if (!shouldPoll(newStatus) && updateIndicator) {
+          updateIndicator.remove();
+        }
+      }
+      
+      function pollJob() {
+        if (isPolling) return;
+        isPolling = true;
+        
+        fetch('/job/' + jobId + '/json')
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Failed to fetch job data');
+            }
+            return response.json();
+          })
+          .then(function(data) {
+            updateUI(data);
+            
+            if (!shouldPoll(data.status)) {
+              stopPolling();
+            }
+          })
+          .catch(function(error) {
+            console.error('Polling error:', error);
+          })
+          .finally(function() {
+            isPolling = false;
+          });
+      }
+      
+      function startPolling() {
+        const currentStatus = '<%= job.status %>';
+        if (!shouldPoll(currentStatus)) {
+          return;
+        }
+        
+        pollTimer = setInterval(pollJob, POLL_INTERVAL);
+      }
+      
+      function stopPolling() {
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }
+      
+      window.addEventListener('beforeunload', function() {
+        stopPolling();
+      });
+      
+      startPolling();
+    })();
+  </script>
 </body>
 </html>

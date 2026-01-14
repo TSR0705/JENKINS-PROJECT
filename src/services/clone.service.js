@@ -3,6 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const util = require('util');
+const logger = require('../utils/logger');
 
 const execAsync = util.promisify(exec);
 
@@ -26,11 +27,14 @@ const cloneRepo = async (repoUrl) => {
 
     return clonePath;
   } catch (error) {
+    logger.error('Clone failed', { repoUrl, error: error.message });
     try {
       if (fs.existsSync(clonePath)) {
         fs.rmSync(clonePath, { recursive: true, force: true });
       }
-    } catch (_) {}
+    } catch (cleanupError) {
+      logger.error('Cleanup failed', { clonePath, error: cleanupError.message });
+    }
 
     throw error;
   }

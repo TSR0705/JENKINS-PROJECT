@@ -1,13 +1,44 @@
 const { executeJob } = require('./runner.service');
 const fs = require('fs');
 
-const MAX_CONCURRENT_JOBS = 1;
+const MAX_CONCURRENT_JOBS = parseInt(process.env.MAX_CONCURRENT_JOBS || '1', 10);
 const jobQueue = [];
 let runningJobs = 0;
 
 const rateLimitMap = new Map();
-const RATE_LIMIT_PER_MINUTE = 5;
+const RATE_LIMIT_PER_MINUTE = parseInt(process.env.RATE_LIMIT_PER_MINUTE || '5', 10);
 const RATE_LIMIT_WINDOW_MS = 60000;
+
+// Cleanup old rate limit entries every 5 minutes
+const RATE_LIMIT_CLEANUP_INTERVAL = 5 * 60 * 1000;
+
+let rateLimitCleanupInterval = null;
+
+const cleanupRateLimitMap = () => {
+  const now = Date.now();
+  const cutoff = now - RATE_LIMIT_WINDOW_MS;
+  
+  for (const [ip, timestamps] of rateLimitMap.entries()) {
+    const recentRequests = timestamps.filter(timestamp => timestamp > cutoff);
+    if (recentRequests.length === 0) {
+      rateLimitMap.delete(ip);
+    } else {
+      rateLimitMap.set(ip, recentRequests);
+    }
+  }
+};
+
+// Start cleanup interval (only if not in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  rateLimitCleanupInterval = setInterval(cleanupRateLimitMap, RATE_LIMIT_CLEANUP_INTERVAL);
+}
+
+const stopCleanup = () => {
+  if (rateLimitCleanupInterval) {
+    clearInterval(rateLimitCleanupInterval);
+    rateLimitCleanupInterval = null;
+  }
+};
 
 const checkRateLimit = (ip) => {
   const now = Date.now();
@@ -48,6 +79,7 @@ const processQueue = () => {
   runningJobs++;
   job.status = 'RUNNING';
   job.startedAt = new Date().toISOString();
+  job.workDir = workDir;
   
   executeJob(job)
     .then(result => {
@@ -69,6 +101,7 @@ const processQueue = () => {
     })
     .catch(err => {
       job.completedAt = new Date().toISOString();
+      job.logs = job.logs || [];
       job.logs.push(err.message);
       job.status = 'FAIL';
       
@@ -77,6 +110,12 @@ const processQueue = () => {
       }
       job.workDir = null;
       
+      runningJobs--;
+      processQueue();
+    })
+    .catch(err => {
+      // Final catch to prevent unhandled rejection
+      console.error('Critical error in processQueue:', err);
       runningJobs--;
       processQueue();
     });
@@ -92,5 +131,6 @@ const getQueueStatus = () => {
 
 module.exports = {
   enqueueJob,
-  getQueueStatus
+  getQueueStatus,
+  stopCleanup
 };

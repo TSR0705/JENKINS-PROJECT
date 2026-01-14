@@ -246,6 +246,28 @@ Most CI projects are claimed. This one is **provable**.
 
 ---
 
+## 📚 Documentation
+
+### Getting Started
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete deployment instructions and quick start
+
+### Technical Documentation
+- **[CI/CD Architecture](docs/CI_CD_ARCHITECTURE.md)** - Complete system design and flow separation
+- **[Complete Bug Fixes](docs/COMPLETE_BUG_FIXES.md)** - All bugs fixed and improvements made
+- **[Jenkins Verification](docs/JENKINS_VERIFICATION.md)** - Verification checklist and monitoring
+- **[Jenkinsfile Changes](docs/JENKINSFILE_CHANGES.md)** - Pipeline improvements and rationale
+- **[Quick Reference](docs/QUICK_REFERENCE.md)** - Operations quick reference guide
+
+### Status
+✅ **All critical bugs fixed**  
+✅ **Production ready**  
+✅ **All tests passing**  
+✅ **Comprehensive error handling**  
+✅ **Memory leaks resolved**  
+✅ **Graceful shutdown implemented**  
+
+---
+
 ## 📄 License
 
 MIT License

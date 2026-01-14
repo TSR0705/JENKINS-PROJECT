@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const logger = require('./utils/logger');
 
 const indexRoutes = require('./routes/index.routes');
 const healthRoutes = require('./routes/health.routes');
@@ -28,7 +29,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error('Unhandled error', { error: err.message, stack: err.stack, url: req.url });
   res.status(500).render('error', { message: 'Internal Server Error' });
 });
 

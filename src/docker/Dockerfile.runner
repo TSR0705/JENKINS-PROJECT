@@ -8,18 +8,17 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN groupadd -r runner && useradd -r -g runner runner
+# Create non-root user with home directory
+RUN groupadd -r runner && useradd -r -g runner -m -d /home/runner runner
 
 # Install Python tools
 RUN pip3 install --no-cache-dir --break-system-packages pytest flake8
 
-
 # Set working directory
 WORKDIR /workspace
 
-# Change ownership of workspace to runner user
-RUN chown -R runner:runner /workspace
+# Change ownership of workspace and home to runner user
+RUN chown -R runner:runner /workspace /home/runner
 
 # Switch to non-root user
 USER runner
