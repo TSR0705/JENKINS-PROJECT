@@ -3,7 +3,7 @@ const path = require('path');
 const logger = require('../utils/logger');
 
 const RUNNER_IMAGE = process.env.RUNNER_IMAGE || 'openci-runner-image';
-const TIMEOUT_MS = parseInt(process.env.JOB_TIMEOUT_MS || '120000', 10);
+const TIMEOUT_MS = parseInt(process.env.JOB_TIMEOUT_MS || '300000', 10); // Increased to 5 minutes
 
 const getCommands = (projectType) => {
   if (projectType === 'node') {
@@ -48,12 +48,26 @@ const runContainer = (workDir, commands) => {
       commandStr
     ];
 
-    const docker = spawn('docker', dockerArgs);
+    logger.info('Starting Docker container', { image: RUNNER_IMAGE, workDir: mountPath });
+
+    let docker;
+    try {
+      docker = spawn('docker', dockerArgs);
+    } catch (spawnError) {
+      logger.error('Failed to spawn Docker process', { error: spawnError.message });
+      logs.push(`Error: Failed to start Docker container - ${spawnError.message}`);
+      return resolve({ success: false, logs, error: true });
+    }
 
     const timeout = setTimeout(() => {
       if (!finished) {
+        logger.warn('Job execution timed out', { timeout: TIMEOUT_MS });
         logs.push('Execution timed out');
-        docker.kill('SIGKILL');
+        try {
+          docker.kill('SIGKILL');
+        } catch (killError) {
+          logger.error('Failed to kill Docker process', { error: killError.message });
+        }
         finished = true;
         resolve({ success: false, logs, timeout: true });
       }
@@ -61,18 +75,27 @@ const runContainer = (workDir, commands) => {
 
     docker.stdout.on('data', (data) => {
       const lines = data.toString().split('\n').filter(line => line.trim());
-      lines.forEach(line => logs.push(line));
+      lines.forEach(line => {
+        logs.push(line);
+        logger.debug('Docker stdout', { line });
+      });
     });
 
     docker.stderr.on('data', (data) => {
       const lines = data.toString().split('\n').filter(line => line.trim());
-      lines.forEach(line => logs.push(line));
+      lines.forEach(line => {
+        logs.push(line);
+        logger.debug('Docker stderr', { line });
+      });
     });
 
     docker.on('close', (code) => {
       if (finished) return;
       clearTimeout(timeout);
       finished = true;
+      
+      logger.info('Docker container closed', { exitCode: code, logCount: logs.length });
+      
       resolve({
         success: code === 0,
         logs
@@ -83,8 +106,19 @@ const runContainer = (workDir, commands) => {
       if (finished) return;
       clearTimeout(timeout);
       finished = true;
-      logs.push(`Docker error: ${err.message}`);
-      resolve({ success: false, logs });
+      
+      logger.error('Docker process error', { error: err.message, code: err.code });
+      
+      // Provide helpful error messages
+      if (err.code === 'ENOENT') {
+        logs.push('Error: Docker command not found. Is Docker installed?');
+      } else if (err.code === 'EACCES') {
+        logs.push('Error: Permission denied. Does the user have Docker access?');
+      } else {
+        logs.push(`Docker error: ${err.message}`);
+      }
+      
+      resolve({ success: false, logs, error: true });
     });
   });
 };
