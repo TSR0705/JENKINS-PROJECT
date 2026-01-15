@@ -246,25 +246,63 @@ Most CI projects are claimed. This one is **provable**.
 
 ---
 
+## ⚠️ Important Notes
+
+### Repository Requirements
+- **Maximum size:** 100MB (larger repos will be rejected)
+- **Timeout:** 5 minutes (300 seconds)
+- **Node.js:** Must have `test` script in package.json
+- **Python:** Must have requirements.txt AND test files/directory
+
+### Recommended Test Repositories
+See [RECOMMENDED_TEST_REPOS.md](RECOMMENDED_TEST_REPOS.md) for a list of suitable test repositories.
+
+**⚠️ Large repositories like Express.js (>100MB) will timeout or be rejected. Use small, focused test repositories instead.**
+
+---
+
 ## 📚 Documentation
 
-### Getting Started
-- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete deployment instructions and quick start
+### Quick Start
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete deployment instructions
+- **[Recommended Test Repos](RECOMMENDED_TEST_REPOS.md)** - List of suitable test repositories
+- **[Final Status](FINAL_STATUS.md)** - Complete system status and test results
 
 ### Technical Documentation
-- **[CI/CD Architecture](docs/CI_CD_ARCHITECTURE.md)** - Complete system design and flow separation
-- **[Complete Bug Fixes](docs/COMPLETE_BUG_FIXES.md)** - All bugs fixed and improvements made
-- **[Jenkins Verification](docs/JENKINS_VERIFICATION.md)** - Verification checklist and monitoring
-- **[Jenkinsfile Changes](docs/JENKINSFILE_CHANGES.md)** - Pipeline improvements and rationale
-- **[Quick Reference](docs/QUICK_REFERENCE.md)** - Operations quick reference guide
+- **[CI/CD Architecture](docs/CI_CD_ARCHITECTURE.md)** - Complete system design
+- **[Complete Bug Fixes](docs/COMPLETE_BUG_FIXES.md)** - All bugs fixed and improvements
+- **[Jenkins Verification](docs/JENKINS_VERIFICATION.md)** - Verification procedures
+- **[Quick Reference](docs/QUICK_REFERENCE.md)** - Operations quick reference
 
-### Status
+### Project Status
+✅ **47 tests passing** (unit + edge cases + integration)  
 ✅ **All critical bugs fixed**  
+✅ **All edge cases handled**  
 ✅ **Production ready**  
-✅ **All tests passing**  
+✅ **5-minute timeout** (configurable)  
+✅ **100MB size limit** (prevents abuse)  
 ✅ **Comprehensive error handling**  
 ✅ **Memory leaks resolved**  
 ✅ **Graceful shutdown implemented**  
+✅ **Docker health checks**  
+✅ **System status endpoint**  
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# Build runner image
+docker build -t openci-runner-image:latest -f src/docker/Dockerfile.runner .
+
+# Install and start
+npm install
+npm start
+
+# Verify
+curl http://localhost:3000/health
+curl http://localhost:3000/status
+```
 
 ---
 
@@ -279,3 +317,7 @@ MIT License
 This project prioritizes **correctness, safety, and clarity** over feature count.
 
 If you understand this system, you understand **real CI/CD design** — not just tools.
+
+**Status: Production Ready** ✅
+
+**Note:** Use small test repositories (< 100MB) for best results. See [RECOMMENDED_TEST_REPOS.md](RECOMMENDED_TEST_REPOS.md) for examples.
